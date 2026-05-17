@@ -9,7 +9,8 @@ tasks_bp = Blueprint('tasks', __name__)
 @jwt_required()
 def get_tasks():
     user_id = get_jwt_identity()
-    tasks = Task.query.filter_by(user_id=user_id).order_by(Task.created_at.desc()).all()
+    # Convert to int for database query
+    tasks = Task.query.filter_by(user_id=int(user_id)).order_by(Task.created_at.desc()).all()
     return jsonify([task.to_dict() for task in tasks]), 200
 
 @tasks_bp.route('/tasks', methods=['POST'])
@@ -24,7 +25,7 @@ def create_task():
     task = Task(
         title=data['title'],
         description=data.get('description', ''),
-        user_id=user_id
+        user_id=int(user_id)
     )
     
     db.session.add(task)
@@ -36,7 +37,7 @@ def create_task():
 @jwt_required()
 def update_task(task_id):
     user_id = get_jwt_identity()
-    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
+    task = Task.query.filter_by(id=task_id, user_id=int(user_id)).first()
     
     if not task:
         return jsonify({'error': 'Task not found'}), 404
@@ -58,7 +59,7 @@ def update_task(task_id):
 @jwt_required()
 def delete_task(task_id):
     user_id = get_jwt_identity()
-    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
+    task = Task.query.filter_by(id=task_id, user_id=int(user_id)).first()
     
     if not task:
         return jsonify({'error': 'Task not found'}), 404
